@@ -7,8 +7,7 @@ class Page extends BaseController
     public function about()
     {
         return view('about', [
-            'title' => 'Halaman About',
-            'content' => 'Ini Adalah Halaman About Yang Menjelaskan Tentang Isi Halaman Ini.'
+            'title' => 'Halaman About','content' => 'Ini Adalah Halaman About Yang Menjelaskan Tentang Isi Halaman Ini.'
         ]);
     }
     public function contact()
