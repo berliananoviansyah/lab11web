@@ -326,5 +326,5 @@ Kemudian ubah isi file about.php sebagai berikut:
 
 Selanjutnya refresh tampilan pada alamat : http://localhost:8080/about
 
-[layout_css](img/css.png)
+![layout_css](img/css.png)
 
