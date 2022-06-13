@@ -179,3 +179,28 @@ Lalu refresh kembali browser, maka akan muncul tampilan yang sudah dapat diakses
 ![halaman_about](img/page_about.png)
 
 
+## Auto Rooting
+
+Secara default fitur *autoroute* pada Codeigniter sudah aktif. Untuk mengubah status *autoroute* dapat mengubah nilai variablenya. Untuk menonaktifkannya cukup ubah **true** menjadi **false**.
+
+```php
+$routes->setAutoRoute(true);
+```
+
+
+Lalu tambahkan method baru pada Controller Page seperti berikut:
+
+
+```php
+ public function tos()
+    {
+        echo "Ini Halaman Term of Services";
+    }
+}
+```
+
+
+Method ini belum ada pada routing, sehingga cara mengaksesnya dengan menggunakan alamat : http://localhost:8080/page/tos
+
+
+![TOS](img/page_tos.png)
