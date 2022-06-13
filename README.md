@@ -134,6 +134,7 @@ php spark routes
 ![route_baru](img/routes.png)
 
 
+
 Kemudian akses route tersebut dengan mengakses url : http:/localhost:8080/about
 
 ![route_baru](img/404_routes.png)
@@ -179,7 +180,7 @@ Lalu refresh kembali browser, maka akan muncul tampilan yang sudah dapat diakses
 ![halaman_about](img/page_about.png)
 
 
-## Auto Rooting
+## 9) Auto Rooting
 
 Secara default fitur *autoroute* pada Codeigniter sudah aktif. Untuk mengubah status *autoroute* dapat mengubah nilai variablenya. Untuk menonaktifkannya cukup ubah **true** menjadi **false**.
 
@@ -204,3 +205,126 @@ Method ini belum ada pada routing, sehingga cara mengaksesnya dengan menggunakan
 
 
 ![TOS](img/page_tos.png)
+
+
+
+## 10). Membuat View
+
+Selanjutnya membuat view untuk tampilan web agar menarik. Buat file baru dengan nama about.php pada directory view **(app>view/about.php)**. Kemudian isi kodenya seperti berikut:
+
+```php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><?= $title; ?></title>
+</head>
+<body>
+    <h1><?= $title; ?></h1>
+    <hr>
+    <p><?= $content; ?></p>
+</body>
+</html>
+```
+
+
+Ubah **method about** pada class Controller Page menjadi seperti berikut:
+
+```php
+  public function about()
+    {
+        return view('about', [
+            'title' => 'Halaman About','content' => 'Ini Adalah Halaman About Yang Menjelaskan Tentang Isi Halaman Ini.'
+        ]);
+    }
+```
+
+
+Kemudian refresh pada halaman tersebut.
+
+![about](img/Hal_About.png)
+
+
+
+## 11). Membuat Layout web dengan CSS
+
+
+Pada dasarnya, layout web dengan css diimplementasikan dengan mudah pada Codeigniter. Yang perlu diketahui adalah, pada Codeigniter 4 file yang menyimpan asset css dan javascript terletak pada directory public.
+
+Untuk memudahkannya, copy file css dari praktikum **lab4web** yang akan digunakan untuk layout tugas saat ini.
+
+
+![css](img/copas_css.png)
+
+
+Kemudian buat folder **template** pada directory **view** kemudian buat file **header.php** dan **footer.php**.
+
+
+Lokasi penyimpanan file **(app>view>template>header.php)**.
+
+```php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="<?= base_url('/style.css');?>">
+</head>
+<body>
+    <div id="container">
+    <header>
+        <h1>Layout Sederhana</h1>
+    </header>
+    <nav>
+        <a href="<?= base_url('/');?>" class="active">Home></a>
+        <a href="<?= base_url('/artikel');?>">Artikel></a>
+        <a href="<?= base_url('/about');?>">About></a>
+        <a href="<?= base_url('/contact');?>">Contact></a>
+    </nav>
+    <section id="wrapper">
+        <section id="main">
+```
+
+
+Lokasi penyimpanan 2 **(app>view>template>footer.php)**.
+
+```php
+ </section>
+    <aside id="sidebar">
+        <div class="widget-box">
+            <h3 class="title">Widget Header</h3>
+            <ul>
+                <li><a href="#">Widget Link</a></li>
+                <li><a href="#">Widget Link</a></li>
+            </ul>
+        </div>
+        <div class="widget-box">
+            <h3 class="title">Widget Text</h3>
+            <p>Vestibulum lorem elit, iaculis in nisl volutpat, malesuada
+tincidunt arcu. Proin in leo fringilla, vestibulum mi porta, faucibus felis.
+Integer pharetra est nunc, nec pretium nunc pretium ac.</p>
+            </div>
+        </aside>
+    </section>
+    <footer>
+        <p>&copy; 2021 - Universitas Pelita Bangsa</p>
+    </footer>
+    </div>
+</body>
+</html>
+```
+
+
+Kemudian ubah isi file about.php sebagai berikut:
+
+```php
+<?= $this->include('template/header'); ?>
+<h1><?= $title; ?></h1>
+<hr>
+<p><?= $content; ?></p>
+<?= $this->include('template/footer'); ?>
+```
+
+Selanjutnya refresh tampilan pada alamat : http://localhost:8080/about
+
+[layout_css](img/css.png)
+
