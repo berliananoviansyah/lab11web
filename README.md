@@ -333,3 +333,137 @@ Selanjutnya refresh tampilan pada alamat : http://localhost:8080/about
 
 # PRAKTIKUM 12 PERTEMUAN 13
 
+
+## 1). Membuat Database
+
+```sql
+CREATE DATABASE lab_ci4;
+```
+
+**Lalu buatlah tabel sebagai berikut:**
+
+```sql
+CREATE TABLE artikel (
+    id INT(11) auto_increment,
+    judul VARCHAR(200) NOT NULL,
+    isi TEXT,
+    gambar VARCHAR(200),
+    status TINYINT(1) DEFAULT 0,
+    slug VARCHAR(200),
+    PRIMARY KEY(id)
+);
+```
+
+
+
+## 2). Konfigurasi Koneksi Database
+
+
+Selanjutlah lakukanlah konfigurasi database untuk menghubungkannya dengan server. Dapat dilakukan dengan dua cara yaitu:
+* File **app>config>database.php**; atau,
+* Konfigurasi pada file **.env** seperti contoh dibawah ini:
+
+![Konfigurasi_database](img/database12.png)
+
+
+
+## 3). Membuat Model
+
+
+Yang akan digunakan untuk memproses data artikel. Buat file baru pada directory **app>Models** dengan nama file **ArtikelModel.php**.
+
+
+```php
+<?php
+
+namespace App\Models;
+
+use CodeIgniter\Model;
+
+class ArtikelModel extends Model
+{
+    protected $table = 'artikel';
+    protected $primaryKey = 'id';
+    protected $useAutoIncrement = true;
+    protected $allowedFields = ['judul', 'isi', 'status', 'slug', 'gambar'];
+}
+```
+
+
+## 4). Membuat Controller
+
+
+Buatlah controller baru dengan nama **Artikel.php** pada directory **app>Controllers**.
+
+
+```php
+<?php
+
+namespace App\Controllers;
+
+use App\Models\ArtikelModel;
+
+class Artikel extends BaseController
+{
+    public function index()
+    {
+        $title = 'Daftar Artikel';
+        $model = new ArtikelModel();
+        $artikel = $model->findAll();
+        return view('artikel/index', compact('artikel', 'title'));
+    }
+}
+```
+
+
+
+## 5). Membuat View
+
+Lalu buat directory baru dengan nama artikel pada directory **app>views**, kemudian buat file baru dengan nama **index.php**.
+
+
+```php
+<?= $this->include('template/header'); ?>
+
+<?php if($artikel): foreach($artikel as $row): ?>
+<article class="entry">
+    <h2><a href="<? base_url('/artikel/' . $row['slug']);?>"><?= $row['judul']; ?></a>
+</h2>
+    <img src="<?= base_url('/gambar/' . $row['gambar']);?>" alt="<?= $row['judul']; ?>">
+    <p><?= substr($row['isi'], 0, 200); ?></p>
+</article>
+<hr class="divider" />
+<?php endforeach; else: ?>
+<article class="entry">
+    <h2>Belum Ada Data Yang di Input.</h2>
+</article>
+<?php endif; ?>
+
+<?= $this->include('template/footer'); ?>
+```
+
+
+Lalu buka kembali browser dengan mengakses url http://localhost:8080/artikel
+
+![Membuat_view](img/no_input.png)
+
+
+Kemudian tambahkan beberapa data pada database agar data dapat ditampilkan.
+
+```sql
+INSERT INTO artikel (judul, isi, slug) VALUE
+('Artikel pertama', 'Lorem Ipsum adalah contoh teks atau dummy dalam industri
+percetakan dan penataan huruf atau typesetting. Lorem Ipsum telah menjadi
+standar contoh teks sejak tahun 1500an, saat seorang tukang cetak yang tidak
+dikenal mengambil sebuah kumpulan teks dan mengacaknya untuk menjadi sebuah
+buku contoh huruf.', 'artikel-pertama'),
+('Artikel kedua', 'Tidak seperti anggapan banyak orang, Lorem Ipsum bukanlah
+teks-teks yang diacak. Ia berakar dari sebuah naskah sastra latin klasik dari
+era 45 sebelum masehi, hingga bisa dipastikan usianya telah mencapai lebih
+dari 2000 tahun.', 'artikel-kedua');
+```
+
+
+Lalu refresh kembali browser, dan data akan muncul.
+
+![Insert_data](img/insert.png)
