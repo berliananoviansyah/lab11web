@@ -731,3 +731,13 @@ $data['isi'];?></textarea>
 
 ## 12). Menghapus data
 
+```php
+public function delete($id)
+    {
+        $artikel = new ArtikelModel();
+        $artikel->delete($id);
+        return redirect('admin/artikel');
+    }
+```
+
+
