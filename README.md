@@ -66,7 +66,7 @@ Untuk memanggil CLI COdeigniter 4.
 
 
 
-## 5) Mengaktifkan Code Debuggiing
+## 5) Mengaktifkan Code Debugging
 
 Fitur debugging pada Codeigniter 4 digunakan untuk memudahkan developer mengetahui pesan arror apabila terjadi kesalahan dalam membuat kode program.
 Ketika terjadi error pada aplikasi akan tampil pesan error sebagai berikut:
@@ -467,3 +467,267 @@ dari 2000 tahun.', 'artikel-kedua');
 Lalu refresh kembali browser, dan data akan muncul.
 
 ![Insert_data](img/insert.png)
+
+
+
+
+## 6). Membuat Tampilan Detail Artikel
+
+Tampilan pada saat judul berita di klik, maka akan diarahkan ke halaman yang berbeda. Tambahkan fungsi baru pada **Controller Artikel** dengan nama **view()**.
+
+
+```php
+ // View ()
+    public function view($slug)
+    {
+        $model = new ArtikelModel();
+        $artikel = $model->where([
+            'slug' => $slug
+        ])->first();
+
+        // Menampilkan error apabila tidak ada data.
+
+        if (!$artikel)
+        {
+            throw PageNotFoundExeption::forPageNotFound();
+        }
+
+        $title = $artikel['judul'];
+        return view('artikel/detail', compact('artikel', 'title'));
+    }
+```
+
+
+
+## 7). Membuat View Detail
+
+
+Buat file baru untuk halaman detail dengan nama **Detail.php** pada **app>views>artikel**.
+
+
+```php
+<?= $this->include('template/header'); ?>
+
+<article class="entry">
+    <h2><?= $artikel['judul']; ?></h2>
+    <img src="<?= base_url('/gambar/' . $artikel['gambar']);?>" alt="<?= $artikel['judul']; ?>">
+    <p><?= $artikel['isi']; ?></p>
+</article>
+
+<?= $this->include('template/footer'); ?>
+```
+
+
+
+## 8). Membuat Routing Untuk Artikel Detail
+
+Buka file config **Raouter.php** pada directory **app>config>Routes.php**, kemudian tambah routing untuk artikel detail.
+
+```php
+$routes->get('/artikel/(:any)', 'Artikel::view/$1');
+```
+
+
+![Artikel_pertama](img/artikel_1.png)
+
+
+
+## 9). Membuat Menu Admin
+
+
+Menu admin berguna sebagai proses CRUD data artikel. Buat mrthod baru pada **Controller** di file **artikel** dengan nama **admin_index().
+
+```php
+public function admin_index()
+    {
+        $title = 'Daftar Artikel';
+        $model = new ArtikelModel();
+        $artikel = $model->findAll();
+        return view('artikel/admin_index', compact('artikel', 'title'));
+    }
+```
+
+
+
+Lalu buat tampilan dengan nama **admin_index** pada folder **view**.
+
+
+```php
+<?= $this->include('template/admin_header'); ?>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Judul</th>
+            <th>Status</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php if($artikel): foreach($artikel as $row): ?>
+        <tr>
+            <td><?= $row['id']; ?></td>
+            <td>
+                <b><?= $row['judul']; ?></b>
+                <p><small><?= substr($row['isi'], 0, 50); ?></small></p>
+            </td>
+            <td><?= $row['status']; ?></td>
+            <td>
+                <a class="btn" href="<?= base_url('/admin/artikel/edit/' . $row['id']);?>">Ubah</a>
+                <a class="btn btn-danger" onclick="return confirm('Yakin Menghapus Data?');" href="<?= base_url('/admin/artikel/delete/' . $row['id']);?>">Hapus</a>
+            </td>
+        </tr>
+        <?php endforeach; else: ?>
+        <tr>
+            <td colspan="4">Belum Ada Data.</td>
+        </tr>
+        <?php endif; ?>
+    </tbody>
+    <tfoot>
+        <tr>
+            <th>ID</th>
+            <th>Judul</th>
+            <th>Status</th>
+            <th>Aksi</th>
+        </tr>
+    </tfoot>
+</table>
+
+<?= $this->include('template/admin_footer'); ?>
+```
+
+
+Lalu tambahkan routing untuk meni admin seperti berikut:
+
+```php
+$routes->group('admin', function($routes) {
+    $routes->get('artikel', 'Artikel::admin_index');
+    $routes->add('artikel/add', 'Artikel::add');
+    $routes->add('artikel/edit/(:any)', 'Artikel::edit/$1');
+    $routes->get('artikel/delete/(:any)', 'Artikel::delete/$1');
+});
+```
+
+
+Setelahnya, akses menu admin dengan url berikut: http://localhost:8080/admdin/artikel
+
+
+
+![membuat_menu_admin](img/admin_index.png)
+
+
+
+## 10). Menambah Data Artikel
+
+tambahkan fungsi method baru pada **Controller** pada file **artikel** dengan nama **add()**.
+
+```php
+ public function add()
+    {
+        // Validasi Data.
+        $validation = \Config\Services::validation();
+        $validation->setRules(['judul' => 'required']);
+        $isDataValid = $validation->withRequest($this->request)->run();
+
+        if ($isDataValid)
+        {
+            $artikel = new ArtikelModel();
+            $artikel->insert([
+                'judul' => $this->request->getPost('judul'),
+                'isi' => $this->request->getPost('isi'),
+                'slug' => url_title($this->request->getPost('judul')),
+            ]);
+            return redirect('admin/artikel');
+        }
+        $title = "Tambah Artikel";
+        return view('artikel/form_add', compact('title'));
+    }
+```
+
+
+Kemudian buat tampilan untuk form tambah dengan nama **add_php** pada folder **view**.
+
+
+```php
+<?= $this->include('template/admin_header'); ?>
+
+<h2><?= $title; ?></h2>
+<form action="" method="post">
+    <p>
+        <input type="text" name="judul">
+    </p>
+    <p>
+        <textarea name="isi" cols="50" rows="10"></textarea>
+    </p>
+    <p><input type="submit" value="Kirim" class="btn btn-large"></p>
+</form>
+
+<?= $this->include('template/admin_footer'); ?>
+```
+
+
+
+![menambahkan_data](img/form_add.png)
+
+
+
+## 11). Mengubah Data
+
+Tambahkan fungsi atau method baru pada **Controller artikel** dengan nama edit().
+
+```php
+public function edit($id)
+    {
+        $artikel = new ArtikelModel();
+        
+        // validasi data.
+        $validation = \Config\Services::validation();
+        $validation->setRules(['judul' => 'required']);
+        $isDataValid = $validation->withRequest($this->request)->run();
+
+        if ($isDataValid)
+        {
+            $artikel->update($id, [
+                'judul' => $this->request->getPost('judul'),
+                'isi' => $this->request->getPost('isi'),
+            ]);
+            return redirect('admin/artikel');
+        }
+
+        // ambil data lama
+        $data = $artikel->where('id', $id)->first();
+        $title = "Edit Artikel";
+        return view('artikel/form_edit', compact('title', 'data'));
+    }
+```
+
+
+Kemudian buat tampilan untuk form edit pada folder **view** dengan nama **form_edit.php**.
+
+
+```php
+<?= $this->include('template/admin_header'); ?>
+
+<h2><?= $title; ?></h2>
+<form action="" method="post">
+    <p>
+        <input type="text" name="judul" value="<?= $data['judul'];?>" >
+    </p>
+    <p>
+        <textarea name="isi" cols="50" rows="10"><?=
+$data['isi'];?></textarea>
+    </p>
+    <p><input type="submit" value="Kirim" class="btn btn-large"></p>
+</form>
+
+<?= $this->include('template/admin_footer'); ?>
+```
+
+
+![edit](img/edit.png)
+
+
+
+## 12). Menghapus data
+
