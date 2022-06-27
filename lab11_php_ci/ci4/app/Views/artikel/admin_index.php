@@ -39,4 +39,7 @@
     </tfoot>
 </table>
 
+<?= $pager->links(); ?>
+
+
 <?= $this->include('template/admin_footer'); ?>
