@@ -747,3 +747,271 @@ public function delete($id)
 # PRAKTIKUM 13 PERTEMUAN 14
 
 
+## 1). Membuat Table User Login
+
+
+```php
+CREATE TABLE user (
+id INT(11) auto_increment,
+username VARCHAR(200) NOT NULL,
+useremail VARCHAR(200),
+userpassword VARCHAR(200),
+PRIMARY KEY(id)
+);
+```
+
+
+
+## 2). Membuat Model User
+
+
+Selanjutnya adalah membuat model untuk memproses data Login. Buat file baru pada directory **App>Models** dengan nama **UserModel.php**.
+
+
+```php
+<?php
+
+namespace App\Models;
+
+use CodeIgniter\Model;
+
+class UserModel extends Model
+
+{
+    protected $table = 'user';
+    protected $primaryKey = 'id';
+    protected $useAutoIncrement = true;
+    protected $allowedFields = ['username', 'useremail', 'userpassword'];
+}
+```
+
+
+
+## 3). Membuat Controller User
+
+
+Lalu buat controller baru dengan nama **User.php** pada directory **App>Controllers**. Kemudian tambahkan moetjod **index()** untuk menampilkan daftar user, dan method **login()** untuk proses login.
+
+
+```php
+<?php
+
+namespace App\Controllers;
+
+use App\Models\UserModel;
+
+class User extends BaseController
+{
+    public function index()
+    {
+        $title = 'Daftar User';
+        $model = new UserModel();
+        $users = $model->findAll();
+        return view('user/index', compact('users', 'title'));
+    }
+
+    public function login()
+    {
+        helper(['form']);
+        $email = $this->request->getPost('email');
+        $password = $this->request->getPost('password');
+        if (!$email)
+        {
+            return view('user/login');
+        }
+
+        $session = session();
+        $model = new UserModel();
+        $login = $model->where('useremail', $email)->first();
+        if ($login)
+        {
+            $pass = $login['userpassword'];
+            if (password_verify($password, $pass))
+            {
+                $login_data = [
+                    'user_id' => $login['id'],
+                    'user_name' => $login['username'],
+                    'user_email' => $login['useremail'],
+                    'logged_in' => TRUE,
+                ];
+                $session->set($login_data);
+                return redirect('admin/artikel');
+            }
+            else
+            {
+                $session->setFlashdata("flash_msg", "Password Salah.");
+                return redirect()->to('/user/login');
+            }
+        }
+        else
+        {
+            $session->setFlashdata("flash_msg", "Email Tidak Terdaftar.");
+            return redirect()->to('/user/login');
+        }
+    }
+
+    public function logout()
+    {
+        session()->destroy();
+        return redirect()->to('/user/login');
+    }
+}
+```
+
+
+
+## 4). Membuat View Login
+
+
+Selanjutnya buat directory baru dengan nama **user** pada directory **App>Views**, kemudian buat file baru dengan nama login.php.
+
+
+```php
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <link rel="stylesheet" href="<?= base_url('/user.css');?>">
+</head>
+<body>
+    <div id="login-wrapper">
+        <h1> Sign In</h1>
+        <?php if(session()->getFlashdata('flash_msg')):?>
+            <div class="alert alert-danger"><?= session()->getFlashdata('flash_msg') ?></div>
+            <?php endif;?>
+            <form action="" method="post">
+                <div class="mb-3">
+                    <label for="InputForEmail" class="form-label">Email Address</label>
+                    <input type="email" name="email" class="form-control" id="InputForEmail" value="<?= set_value('email') ?>">
+                </div>
+                <div class="mb-3">
+                    <label for="InputForPassword" class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" id="InputForPassword">
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+    </div>
+</body>
+</html>
+```
+
+
+
+## 5). Membuat database Seeder
+
+
+Database seeder digunakan untuk membuat data dummy dengan keperluan ujicoba modul login, kita perlu memasukkan data user dan password kedalam database. Untuk itu buat database seeder untuk tabel user. Buka xampp shell, kemudian tulis perintah berikut:
+
+
+```php
+php spark make:seeder UserSeeder
+```
+
+
+Selanjutnya, buka file **UserSeeder.php** yang berada di lokasi directory **App/Database/Seeds/UserSeeder.php** kemudian isi dengan coding berikut:
+
+
+```php
+<?php
+
+namespace App\Database\Seeds;
+
+use CodeIgniter\Database\Seeder;
+
+class UserSeeder extends Seeder
+{
+    public function run()
+    {
+        $model = model('UserModel');
+        $model->insert([
+            'username' => 'admin',
+            'useremail'=> 'admin@email.com',
+            'userpassword' => password_hash('admin123', PASSWORD_DEFAULT),
+        ]);
+    }
+}
+```
+
+
+Lalu uji coba login dengan membuka URL berikut: http://localhost:8080/user/login
+
+Dan akan muncul tampilan sebagai berikut:
+
+
+![Uji_coba_login](img/login.png)
+
+
+
+## 6). Menambahkan Auth Filter
+
+
+Selanjutnyamembuat filter untuk halaman admin dengan membuat file baru dengan nama Auth.php pada dierctory **App/Filters**.
+
+
+```php
+<?php namespace App\Filters;
+
+use Codeigniter\HTTP\RequestInterface;
+use Codeigniter\HTTP\ResponseInterface;
+use Codeigniter\Filters\FilterInterface;
+
+class Auth implements FilterInterface
+{
+    public funtion before(RequestInterface $request, $arguments = null)
+    {
+        // jika user belum login
+        if(! session()->get('logged_in')){
+            // maka redirect ke halaman login
+            return redirect()->to('/user/login');
+        }
+    }
+
+    public function after(RequestInterafce $request, ResponseInterface $response, $arguments = null)
+    {
+        // Do something here
+    }
+}
+
+```
+
+
+Selanjutnya buka file **App>Config>Filters.php** tambahkan kode berikut:
+
+
+![auth](img/config_auth.png)
+
+
+
+Buat file **App>Config>Routes.php** dan sesuaikan codingnya:
+
+
+![auth](img/routes_auth.png)
+
+
+
+## 7). Percobaan Akses Menu Admin
+
+
+Buka URL dengan alamat http://localhost:8080/user/login ketika alamat tersebut diakses maka akan muncul halaman login
+
+
+![akses_menu_admin](img/akses_admin.png)
+
+
+
+## 8). Fungsi Logout
+
+
+ Tambahkan method logout pada controller user seperti berikut:
+
+
+ ```php
+public function logout()
+    {
+        session()->destroy();
+        return redirect()->to('/user/login');
+    }
+```
+
+
