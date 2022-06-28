@@ -1023,3 +1023,36 @@ public function logout()
 # PRAKTIKUM 14 PERTEMUAN 15
 
 
+
+## 1). Membuat Pagination
+
+
+Pagination adalah proses yang digunakan untuk membatasi tampilan yang panjang dari data yang banyak pada sebuah website. Fungsinya adalah untuk memecah tampilan menjadi beberapa halaman tergantung benyaknya data yang akan ditampilkan pada setiap halaman.
+
+
+Pada CodeIgniter 4, fungsi pagination sudah tersedia pada library sehingga cukup mudah menggunakannya.
+
+
+Untuk membuat pagination, buka kembali **Controller Artikel**. kemudian modifikasi kode pada method **admin_index.php** seperti berikut:
+
+
+```php
+public function admin_index()
+    {
+        $title = 'Daftar Artikel';
+        $model = new ArtikelModel();
+        $data = [
+            'title' => $title,
+            'artikel' => $model->paginate(2), #data dibatasi 10 record perhalaman
+            'pager' => $model->pager,
+        ];
+        return view('artikel/admin_index', $data);
+    }
+```
+
+
+Kemudian buka file **Views>artikel>admin_index.php** dan tambahkan kode berikut dibawah deklarasi table data.
+
+```php
+<?= $pager->links(); ?>
+```
