@@ -1056,3 +1056,119 @@ Kemudian buka file **Views>artikel>admin_index.php** dan tambahkan kode berikut 
 ```php
 <?= $pager->links(); ?>
 ```
+
+
+Selanjutnya buka kembali menu daftar arikel, tambahkan data lagi untuk melihat hasilnya.
+
+
+![pagination](img/pagination.png)
+
+
+
+## 2). Membuat Pencarian
+
+
+Pencarian data digunakan untuk memfilter data.
+
+Untuk membuat pencarian data, buka kembali **Controller>artikel**, pada method admin_index ubah kodenya seperti berikut:
+
+
+```php
+public function admin_index()
+    {
+        $title = 'Daftar Artikel';
+        $q = $this->request->getVar('q') ?? '';
+        $model = new ArtikelModel();
+        $data = [
+            'title' => $title,
+            'q'     => $q,
+            'artikel' => $model->like('judul', $q)->paginate(2), #data dibatasi 10 record perhalaman
+            'pager' => $model->pager,
+        ];
+        return view('artikel/admin_index', $data);
+    }
+```
+
+
+Kemudian buka kembali file **view?artikel>admin_index.php** dan tambahkan form pencarian sebelum deklarasi tabel seperti berikut:
+
+
+```php
+<form method="get" class="form-search">
+    <input type="text" name="q" value="<?= $q; ?>" placeholder="Cari Data">
+    <input type="submit" value="Cari" class="btn btn-primary">
+</form>
+```
+
+
+
+Dan pada link pager ubah seperti berikut:
+
+```php
+<?= $pager->only(['q'])->links(); ?>
+```
+
+
+Selanjutnya refresh halaman sebelumnya:
+
+![search](img/search.png)
+
+
+
+
+## 3). Upload Gambar
+
+
+Menambahkan fungsi unggah gambar pada tambah artikel. Buka kembali **Controller>artikel**, sesuaikan kode pada method **add** seperti berikut:
+
+
+```php
+public function add()
+    {
+        // Validasi Data.
+        $validation = \Config\Services::validation();
+        $validation->setRules(['judul' => 'required']);
+        $isDataValid = $validation->withRequest($this->request)->run();
+
+        if ($isDataValid)
+        {
+            $file = $this->request->getFile('gambar');
+            $file ->move(ROOTPATH . 'public/gambar');
+
+            $artikel = new ArtikelModel();
+            $artikel->insert([
+                'judul' => $this->request->getPost('judul'),
+                'isi' => $this->request->getPost('isi'),
+                'slug' => url_title($this->request->getPost('judul')),
+                'gambar' => $file->getName(),
+            ]);
+            return redirect('admin/artikel');
+        }
+        $title = "Tambah Artikel";
+        return view('artikel/form_add', compact('title'));
+    }
+```
+
+
+Kemudian pada file **view>artikel>form_add.php** tambahkan field input file seperti bereikut:
+
+
+```php
+<p>
+        <input type="file" name="gambar">
+    </p>
+```
+
+
+Dan sesuaikan tag form dengan menambahkan *ecrypt type* seperti berikut:
+
+
+```php
+<form action="" method="post" enctype="multipart/form-data">
+```
+
+
+Lalu akses kembali halaman admin artikel,
+
+
+![upload](img/upload.png)
